@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Node.jsでスクレイピングしてみる</title>
+  <title>Web scraping with Node.js</title>
   <link rel="stylesheet" href="./dist/talkie.min.css">
   <link rel="stylesheet" href="./dist/talkie-default.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/monokai_sublime.min.css">
@@ -16,7 +16,7 @@
 <!-- put your slides -->
 
 <template layout="cover" type="text/x-markdown">
-# Web scraping by Node.js
+# Web scraping with Node.js
 
 2015/3/4 社内勉強会
 
@@ -50,32 +50,64 @@ https://github.com/ktty1220/cheerio-httpcli
 # サバゲフィールドの予約状況を確認できるアプリを作ってみる
 </template>
 
-<template layout="code" type="text/x-markdown">
+<template layout="bullets" type="text/x-markdown">
+## サバゲのフィールド予約
 
+- 各社色々な予約システムを採用
+  - 独自システム
+  - 手書きHTML
+  - みんなGoogleカレンダー使えばいいのに
+- スプレッドシートとかで管理するも結局各ページを見に行くのがつらい
+- よろしいならばスクレイピングだ
+</template>
+
+<template layout="title" type="text/x-markdown">
 ## SavageScraper
 
 https://github.com/cancer/SavageScraper
+</template>
 
-HTMLをパースして以下のJSONを返す
+<template layout="code" type="text/x-markdown">
+### こんなHTMLから...
+
+```html
+<h1>2015年3月</h1>
+<table id="reserve_table">
+  <tr>
+    <td><span class="date">3/4</span><p>Aフィールド 関東IT土方組合</p></td>
+    <td><span class="date">3/5</span><p>Aフィールド 予約可</p></td>
+    <!-- : -->
+    <!-- : -->
+  </tr>
+  <!-- : -->
+  <!-- : -->
+</table>
+```
+</template>
+
+<template layout="code" type="text/x-markdown">
+### こんなJSONが欲しい...
 
 ```json
 content: [
   {
-    date: 日付
-    bookable: 予約可否
-    field: 時間帯(昼夜)/フィールド名など
-    summary: 要約
-  }
+    date: "2015/3/4",        // 日付
+    bookable: false,         // 予約可否
+    field: "Aフィールド",     // AフィールドとかBフィールドとか
+    summary: "関東IT土方組合" // 予約してるチームとかそういうの
+  },
+  {
+    date: "2015/3/5",
+    bookable: true,
+    field: "Aフィールド",
+    summary: "予約可"
+  },
   :
 ]
 ```
-
 </template>
 
 <template layout="code" type="text/x-markdown">
-
-## SavageScraper
-
 ```javascript
 var client = require('cheerio-httpcli');
 
@@ -84,6 +116,7 @@ module.exports = function(request, response) {
   client.fetch(url, request.params)
   .then(function(result) {
     var $ = result.$;
+    var json = {};
 
     // パースしてJSON作る処理
 
@@ -91,11 +124,10 @@ module.exports = function(request, response) {
   });
 };
 ```
-
 </template>
 
 <template layout="code" type="text/x-markdown">
-## SavageScraper
+### POSTの場合
 
 ```javascript
 var client = require('cheerio-httpcli');
@@ -110,6 +142,7 @@ module.exports = function(request, response) {
   })
   .then(function(result) {
     var $ = result.$;
+    var json = {};
 
     // パースしてJSON作る処理
 
@@ -119,7 +152,7 @@ module.exports = function(request, response) {
 ```
 </template>
 
-<template layout="bullets" type="text/x-markdown">
+<template layout type="text/x-markdown">
 ## 動かしてみる
 
 http://www.battle-union.jp/calendar/index.html
@@ -129,7 +162,7 @@ http://www.battle-union.jp/calendar/index.html
 http://localhost:3000/battlecity/2015/05
 </template>
 
-<template layout="bullets" type="text/x-markdown">
+<template layout type="text/x-markdown">
 ## フロントは開発合宿で！
 </template>
 
@@ -139,7 +172,7 @@ http://localhost:3000/battlecity/2015/05
 - jQueryライクに書ける(XPATHとか覚えなくていい)ので楽
 - cheerioは他のjQueryライクなライブラリと比べて速いらしい
   - [node.jsでHTMLスクレイピングをjQuery記法でやるライブラリみっつの比較](http://tagomoris.hatenablog.com/entry/20121016/1350359506)
-  - とは言えHTML取得してJSON返すまでに3秒前後かかってる
+  - とは言えPOST(form submit)すると3〜4秒程に
 - 開発時でも結構な頻度で対象のページにアクセスするので、キャッシュが必須っぽい
 - 一番大変なのはそれぞれのサイトに合わせてパース処理を書くところだった
   - 手書きのHTMLとかID重複とか...
