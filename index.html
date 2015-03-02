@@ -1,0 +1,188 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Node.jsでスクレイピングしてみる</title>
+  <link rel="stylesheet" href="./dist/talkie.min.css">
+  <link rel="stylesheet" href="./dist/talkie-default.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/monokai_sublime.min.css">
+  <style>
+    [layout] pre {
+      font-size: 1.3em;
+    }
+  </style>
+</head>
+<body>
+
+<!-- put your slides -->
+
+<template layout="cover" type="text/x-markdown">
+# Web scraping by Node.js
+
+2015/3/4 社内勉強会
+
+[@cancer6](https://twitter.com/cancer6)
+</template>
+
+<template layout="bullets" type="text/x-markdown">
+
+## 今回使ったもの
+
+- cheerio-httpcli
+- express
+</template>
+
+<template layout="bullets" type="text/x-markdown">
+
+## cheerio-httpcli
+
+https://github.com/ktty1220/cheerio-httpcli
+
+- `cheerio`をラップしたHTTPクライアント
+  - HTMLをjQueryライクに操作できるようにするライブラリ
+- 指定したページのHTMLを取得 → `cheerio`オブジェクトに
+- 文字コードを自動判別してUTF-8化
+- GETのみ対応
+  - POSTしたい場合は取得したページのform送信をエミュレート(0.3.0〜)
+- callback or promiseで取得した結果を受け取る(0.3.0〜)
+</template>
+
+<template layout="title" invert type="text/x-markdown" backface="https://scontent.xx.fbcdn.net/hphotos-xpf1/t31.0-8/10655314_10205092052282800_2841143812164262999_o.jpg">
+# サバゲフィールドの予約状況を確認できるアプリを作ってみる
+</template>
+
+<template layout="code" type="text/x-markdown">
+
+## SavageScraper
+
+https://github.com/cancer/SavageScraper
+
+HTMLをパースして以下のJSONを返す
+
+```json
+content: [
+  {
+    date: 日付
+    bookable: 予約可否
+    field: 時間帯(昼夜)/フィールド名など
+    summary: 要約
+  }
+  :
+]
+```
+
+</template>
+
+<template layout="code" type="text/x-markdown">
+
+## SavageScraper
+
+```javascript
+var client = require('cheerio-httpcli');
+
+module.exports = function(request, response) {
+  var url = 'http://example.com/';
+  client.fetch(url, request.params)
+  .then(function(result) {
+    var $ = result.$;
+
+    // パースしてJSON作る処理
+
+    response.send(json);
+  });
+};
+```
+
+</template>
+
+<template layout="code" type="text/x-markdown">
+## SavageScraper
+
+```javascript
+var client = require('cheerio-httpcli');
+
+module.exports = function(request, response) {
+  var url = 'http://example.com/';
+  client.fetch(url, request.params)
+  .then(function(result) {
+    return result.$('#form').submit({
+      // POSTで送信したいパラメータ
+    });
+  })
+  .then(function(result) {
+    var $ = result.$;
+
+    // パースしてJSON作る処理
+
+    response.send(json);
+  });
+};
+```
+</template>
+
+<template layout="bullets" type="text/x-markdown">
+## 動かしてみる
+
+http://www.battle-union.jp/calendar/index.html
+
+↓
+
+http://localhost:3000/battlecity/2015/05
+</template>
+
+<template layout="bullets" type="text/x-markdown">
+## フロントは開発合宿で！
+</template>
+
+<template layout="bullets" type="text/x-markdown">
+## 感想
+
+- jQueryライクに書ける(XPATHとか覚えなくていい)ので楽
+- cheerioは他のjQueryライクなライブラリと比べて速いらしい
+  - [node.jsでHTMLスクレイピングをjQuery記法でやるライブラリみっつの比較](http://tagomoris.hatenablog.com/entry/20121016/1350359506)
+  - とは言えHTML取得してJSON返すまでに3秒前後かかってる
+- 開発時でも結構な頻度で対象のページにアクセスするので、キャッシュが必須っぽい
+- 一番大変なのはそれぞれのサイトに合わせてパース処理を書くところだった
+  - 手書きのHTMLとかID重複とか...
+</template>
+
+<template layout="bullets" type="text/x-markdown">
+<style>
+  [layout] li {
+    font-size: 0.8em;
+  }
+</style>
+## 参考
+
+- [Cheerio](http://cheeriojs.github.io/cheerio/)
+- [ktty1220/cheerio-httpcli](https://github.com/ktty1220/cheerio-httpcli)
+- [Node.js用のスクレイピングモジュール「cheerio-httpcli」の紹介](http://qiita.com/ktty1220/items/e9e42247ede476d04ce2)
+- [Node.jsのスクレイピングモジュール「cheerio-httpcli」が大規模アップデートして帰ってきた](http://qiita.com/ktty1220/items/64168e8d416d6d8ffb45)
+- [node.js スクレイピング cheerio-httpcli の使い方](http://matomater.com/16539/)
+- [node.jsでHTMLスクレイピングをjQuery記法でやるライブラリみっつの比較](http://tagomoris.hatenablog.com/entry/20121016/1350359506)
+- [ahomu/Talkie](https://github.com/ahomu/Talkie)
+</template>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+<script src="./dist/talkie.js"></script>
+<script>
+var talkie = Talkie({wide: false});
+
+talkie.next.plug(talkie.control.keydown('s'));
+talkie.next.plug(talkie.control.keydown('n'));
+talkie.prev.plug(talkie.control.keydown('a'));
+talkie.prev.plug(talkie.control.keydown('p'));
+
+document.addEventListener('DOMContentLoaded', function() {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('[layout]'));
+  talkie.changed.onValue(function(current) {
+    console.clear();
+    // safari's `console#clear` is async...
+    setTimeout(function() {
+      // print presenter notes
+      console.info(talkie.notes[slides.indexOf(current)]);
+    }, 50);
+  });
+});
+</script>
+</body>
+</html>
